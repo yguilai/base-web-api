@@ -10,6 +10,7 @@ var configFile = flag.String("f", "etc/config.yml", "the config file")
 var mode = flag.String("m", "dev", "the development mode")
 
 func main() {
+	flag.Parse()
 	initialize.Config(*configFile, *mode)
 	initialize.Log()
 	initialize.Mysql()
