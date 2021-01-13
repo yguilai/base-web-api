@@ -5,7 +5,21 @@ import (
 	"github.com/wam-lab/base-web-api/common/errno"
 	"github.com/wam-lab/base-web-api/internal/global"
 	"github.com/wam-lab/base-web-api/internal/global/response"
+	"github.com/wam-lab/base-web-api/internal/middleware"
 )
+
+func InitAuthRouter(g *gin.RouterGroup) {
+	auth := g.Group("/auth")
+	{
+		auth.POST("/login", Login)
+		auth.POST("/register", Register)
+	}
+
+	auth.Use(middleware.JwtAuth())
+	{
+		auth.POST("/refresh", RefreshToken)
+	}
+}
 
 func Login(c *gin.Context) {
 	global.Log.Info("Login APi")

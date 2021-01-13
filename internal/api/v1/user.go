@@ -4,7 +4,15 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/wam-lab/base-web-api/common/errno"
 	"github.com/wam-lab/base-web-api/internal/global/response"
+	"github.com/wam-lab/base-web-api/internal/middleware"
 )
+
+func InitUserRouter(g *gin.RouterGroup) {
+	auth := g.Group("/user").Use(middleware.JwtAuth())
+	{
+		auth.POST("/info", UserInfo)
+	}
+}
 
 func UserInfo(c *gin.Context)  {
 	response.Json(c, errno.OK.WithData(map[string]interface{}{

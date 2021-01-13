@@ -15,14 +15,12 @@ import (
 var (
 	Default = NewGormLogger(log.New(os.Stdout, "\r\n", log.LstdFlags), GormConfig{
 		SlowThreshold: 2 * time.Second,
-		Colorful:      true,
 		LogLevel:      logger.Warn,
 	})
 )
 
 type GormConfig struct {
 	SlowThreshold time.Duration
-	Colorful      bool
 	LogLevel      logger.LogLevel
 }
 
@@ -39,22 +37,14 @@ type GormLogger struct {
 
 func NewGormLogger(writer Writer, config GormConfig) logger.Interface {
 	var (
-		infoStr      = "%s\n[info] "
-		warnStr      = "%s\n[warn] "
-		errStr       = "%s\n[error] "
+		infoStr      = "[INFO] "
+		warnStr      = "[WARN] "
+		errStr       = "[ERROR] "
 		traceStr     = "%s\n[%.3fms] [rows:%v] %s"
 		traceWarnStr = "%s %s\n[%.3fms] [rows:%v] %s"
 		traceErrStr  = "%s %s\n[%.3fms] [rows:%v] %s"
 	)
 
-	if config.Colorful {
-		infoStr = logger.Green + "%s\n" + logger.Reset + logger.Green + "[info] " + logger.Reset
-		warnStr = logger.BlueBold + "%s\n" + logger.Reset + logger.Magenta + "[warn] " + logger.Reset
-		errStr = logger.Magenta + "%s\n" + logger.Reset + logger.Red + "[error] " + logger.Reset
-		traceStr = logger.Green + "%s\n" + logger.Reset + logger.Yellow + "[%.3fms] " + logger.BlueBold + "[rows:%v]" + logger.Reset + " %s"
-		traceWarnStr = logger.Green + "%s " + logger.Yellow + "%s\n" + logger.Reset + logger.RedBold + "[%.3fms] " + logger.Yellow + "[rows:%v]" + logger.Magenta + " %s" + logger.Reset
-		traceErrStr = logger.RedBold + "%s " + logger.MagentaBold + "%s\n" + logger.Reset + logger.Yellow + "[%.3fms] " + logger.BlueBold + "[rows:%v]" + logger.Reset + " %s"
-	}
 	return &GormLogger{
 		Writer:       writer,
 		GormConfig:   config,
@@ -130,9 +120,17 @@ func (g *GormLogger) Trace(ctx context.Context, begin time.Time, fc func() (stri
 	}
 }
 
-func (g *GormLogger) Printf(messge string, data ...interface{}) {
+func (g *GormLogger) Printf(message string, data ...interface{}) {
+	if len(data) == 2 {
+		global.Log.Error(
+			"[GORM] "+message,
+			zap.Any("src", data[0]),
+			zap.Any("error", data[1]),
+		)
+		return
+	}
 	global.Log.Info(
-		"[Gorm] "+messge,
+		"[GORM] "+message,
 		zap.String("type", "sql"),
 		zap.Any("src", data[0]),
 		zap.Any("duration", data[1]),
